@@ -112,7 +112,7 @@ hello :-
     nl,
     nl,
     nl,
-    write('Welcome to Tic-Tac-Toe.'),
+    write('Welcome to Power 4 NoLimitEdition.'),
     read_players,
     output_players
     .
@@ -225,7 +225,6 @@ play(P) :-
 % The mark in a square(N) corresponds to an item in a list, as follows:
 
 bas(L,N,M,R):-R=N, nth1(N, L, M), !.
-bas(L,N,M,R):-R is N-7, R>0, nth1(R, L, M), !.
 bas(L,N,M,R):-R1 is N-7, R1>0, bas(L,R1,M,R).
 
 square(L,N,M,R):-
