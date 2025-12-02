@@ -503,6 +503,22 @@ better2(D,R,M,S1,U1,S2,U2,  S,U) :-
 %%% OUTPUT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+:- use_module(library(ansi_term)).
+
+color_val(x) :-
+    Circle = '●',
+    ansi_format([fg(red)], Circle, []).
+color_val(o) :-
+    Circle = '●',
+    ansi_format([fg(blue)], Circle, []).
+color_val(V) :-
+    write(V).
+
+
+
+
+
 output_players :-
     nl,
     player(1, V1),
@@ -537,22 +553,23 @@ output_winner(B) :-
 output_board(B) :-
     nl,
     nl,
-    write('1'), write(' '), write('2'),  write(' '), write('3'),  write(' '), write('4'),  write(' '), write('5'),  write(' '), write('6'),  write(' '), write('7'), nl,
-    writeln('__________'),
-    output_line(0, B), write('<- 1'), nl,
-    writeln('__________'),
-    output_line(7, B), write('<- 2'), nl,
-    writeln('__________'),
-    output_line(14, B), write('<- 3'), nl,
-    writeln('__________'),
-    output_line(21, B), write('<- 4'), nl,
-    writeln('__________'),
-    output_line(28, B), write('<- 5'), nl,
-    writeln('__________'),
+    write(' 1'), write(' '), write('2'),  write(' '), write('3'),  write(' '), write('4'),  write(' '), write('5'),  write(' '), write('6'),  write(' '), write('7'), nl,
+    writeln('_______________'),
+    output_line(0, B), nl,
+    writeln('_______________'),
+    output_line(7, B), nl,
+    writeln('_______________'),
+    output_line(14, B), nl,
+    writeln('_______________'),
+    output_line(21, B), nl,
+    writeln('_______________'),
+    output_line(28, B), nl,
+    writeln('_______________'),
     output_line(35, B),
     !.
 
 output_line(N, B) :-
+    write('|'),
     printVal(N, B), write('|'),
 
     N1 is N+1,
@@ -571,7 +588,7 @@ output_line(N, B) :-
     printVal(N5, B), write('|'),
 
     N6 is N+6,
-    printVal(N6, B),
+    printVal(N6, B),write('|'),
     !.
 
 
@@ -586,7 +603,7 @@ printVal(N, B) :-
     nth0(N, B, Val),
     blank_mark(E),
     not(E = Val),
-    write(Val)
+    color_val(Val)
     .
 
 
