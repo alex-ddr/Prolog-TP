@@ -406,7 +406,7 @@ moves(B,L) :-
     not(win(B,x)),                %%% if either player already won, then there are no available moves
     not(win(B,o)),
     blank_mark(E),
-    findall(N, square(B,N,E), L),
+    findall(R, square(B, _, E, R), L),
     L \= []
     .
 
@@ -439,17 +439,23 @@ utility(B,U) :-
 %.......................................
 % The minimax algorithm always assumes an optimal opponent.
 % For tic-tac-toe, optimal play will always result in a tie, so the algorithm is effectively playing not-to-lose.
-
+max_depth(8).
 % For the opening move against an optimal player, the best minimax can ever hope for is a tie.
 % So, technically speaking, any opening move is acceptable.
 % Save the user the trouble of waiting  for the computer to search the entire minimax tree
 % by simply selecting a random square.
 
-minimax(D,[E,E,E, E,E,E, E,E,E],M,S,U) :-
+minimax(D,[E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E],M,S,U) :-
     blank_mark(E),
     random_int_1n(9,S),
     !
     .
+
+minimax(D, B, M, S, U) :-
+    max_depth(MaxD),
+    D >= MaxD,
+    !,
+    evaluate(B, M, U).
 
 minimax(D,B,M,S,U) :-
     D2 is D + 1,
@@ -465,6 +471,82 @@ minimax(D,B,M,S,U) :-
 minimax(D,B,M,S,U) :-
     utility(B,U)
     .
+
+
+
+%.......................................
+% evaluate
+%.......................................
+% Évalue un plateau sans aller jusqu'à la fin
+evaluate(B, M, U) :-
+    count_threats(B, M, ThreatsM),      % Menaces du joueur M
+    inverse_mark(M, M2),
+    count_threats(B, M2, ThreatsM2),    % Menaces de l'adversaire
+    U is (ThreatsM - ThreatsM2) * 10.   % Score heuristique
+
+% Compte les alignements de 3 pions (menaces)
+count_threats(B, M, Count) :-
+    findall(1, threat_pattern(B, M), L),
+    length(L, Count).
+
+threat_pattern(B, M) :-
+    % Cherche 3 pions alignés avec 1 case videí
+    square(B, _, M, S1),
+    square(B, _, M, S2),
+    square(B, _, M, S3),
+    square(B, _, E, S4),
+    blank_mark(E),
+    aligned(S1, S2, S3, S4).  % Vérifier íl'alignement
+
+
+%.......................................
+% aligned
+%.......................................
+% Vérifie l'alignement de plusieurs cases
+
+% Alignement horizontal
+aligned(S1, S2, S3, S4) :-
+    same_row(S1, S2, S3, S4),
+    consecutive_columns(S1, S2, S3, S4).
+
+% Alignement vertical
+aligned(S1, S2, S3, S4) :-
+    same_column(S1, S2, S3, S4),
+    consecutive_rows(S1, S2, S3, S4).
+
+% Alignement diagonal (↘)
+aligned(S1, S2, S3, S4) :-
+    diagonal_down(S1, S2, S3, S4).
+
+% Alignement diagonal (↗)
+aligned(S1, S2, S3, S4) :-
+    diagonal_up(S1, S2, S3, S4).
+
+% Vérifier si 4 cases sont sur la même ligne
+same_row(S1, S2, S3, S4) :-
+    row(S1, R),
+    row(S2, R),
+    row(S3, R),
+    row(S4, R).
+
+% Calculer la ligne d'une case (plateau 7×6)
+row(Square, Row) :-
+    Row is Square // 7.  % Division entière
+
+% Vérifier si les colonnes sont consécutives
+consecutive_columns(S1, S2, S3, S4) :-
+    col(S1, C1),
+    col(S2, C2),
+    col(S3, C3),
+    col(S4, C4),
+    sort([C1,C2,C3,C4], [C1, C2, C3, C4]),  % Trier
+    C2 is C1 + 1,
+    C3 is C2 + 1,
+    C4 is C3 + 1.
+
+% Calculer la colonne d'une case
+col(Square, Col) :-
+    Col is Square mod 7.
 
 
 %.......................................
