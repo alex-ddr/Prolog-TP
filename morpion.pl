@@ -112,7 +112,7 @@ hello :-
     nl,
     nl,
     nl,
-    write('Welcome to Tic-Tac-Toe.'),
+    write('Welcome to Power 4 NoLimitEdition.'),
     read_players,
     output_players
     .
@@ -225,7 +225,6 @@ play(P) :-
 % The mark in a square(N) corresponds to an item in a list, as follows:
 
 bas(L,N,M,R):-R=N, nth1(N, L, M), !.
-bas(L,N,M,R):-R is N-7, R>0, nth1(R, L, M), !.
 bas(L,N,M,R):-R1 is N-7, R1>0, bas(L,R1,M,R).
 
 square(L,N,M,R):-
@@ -308,10 +307,11 @@ make_move2(human, P, B, B2) :-
     read(S),
 
     blank_mark(E),
-    square(B, S, E),
+    square(B, S, E, R),
     player_mark(P, M),
-    move(B, S, M, B2), !
+    move(B, R, M, B2), !
     .
+
 
 make_move2(human, P, B, B2) :-
     nl,
@@ -502,6 +502,22 @@ better2(D,R,M,S1,U1,S2,U2,  S,U) :-
 %%% OUTPUT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+:- use_module(library(ansi_term)).
+
+color_val(x) :-
+    Circle = '●',
+    ansi_format([fg(red)], Circle, []).
+color_val(o) :-
+    Circle = '●',
+    ansi_format([fg(blue)], Circle, []).
+color_val(V) :-
+    write(V).
+
+
+
+
+
 output_players :-
     nl,
     player(1, V1),
@@ -536,49 +552,65 @@ output_winner(B) :-
 output_board(B) :-
     nl,
     nl,
-    output_square(B,1),
+    write(' 1'), write(' '), write('2'),  write(' '), write('3'),  write(' '), write('4'),  write(' '), write('5'),  write(' '), write('6'),  write(' '), write('7'), nl,
+    writeln('_______________'),
+    output_line(0, B), nl,
+    writeln('_______________'),
+    output_line(7, B), nl,
+    writeln('_______________'),
+    output_line(14, B), nl,
+    writeln('_______________'),
+    output_line(21, B), nl,
+    writeln('_______________'),
+    output_line(28, B), nl,
+    writeln('_______________'),
+    output_line(35, B),
+    !.
+
+output_line(N, B) :-
     write('|'),
-    output_square(B,2),
-    write('|'),
-    output_square(B,3),
-    nl,
-    write('-----------'),
-    nl,
-    output_square(B,4),
-    write('|'),
-    output_square(B,5),
-    write('|'),
-    output_square(B,6),
-    nl,
-    write('-----------'),
-    nl,
-    output_square(B,7),
-    write('|'),
-    output_square(B,8),
-    write('|'),
-    output_square(B,9), !
+    printVal(N, B), write('|'),
+
+    N1 is N+1,
+    printVal(N1, B), write('|'),
+
+    N2 is N+2,
+    printVal(N2, B), write('|'),
+
+    N3 is N+3,
+    printVal(N3, B), write('|'),
+
+    N4 is N+4,
+    printVal(N4, B), write('|'),
+
+    N5 is N+5,
+    printVal(N5, B), write('|'),
+
+    N6 is N+6,
+    printVal(N6, B),write('|'),
+    !.
+
+
+printVal(N, B) :-
+    nth0(N, B, Val),
+    blank_mark(E),
+    E = Val,
+    write(' ')
     .
+
+printVal(N, B) :-
+    nth0(N, B, Val),
+    blank_mark(E),
+    not(E = Val),
+    color_val(Val)
+    .
+
 
 output_board :-
     board(B),
     output_board(B), !
     .
 
-output_square(B,S) :-
-    square(B,S,M),
-    write(' '),
-    output_square2(S,M),
-    write(' '), !
-    .
-
-output_square2(S, E) :-
-    blank_mark(E),
-    write(S), !              %%% if square is empty, output the square number
-    .
-
-output_square2(S, M) :-
-    write(M), !              %%% if square is marked, output the mark
-    .
 
 output_value(D,S,U) :-
     D == 1,
