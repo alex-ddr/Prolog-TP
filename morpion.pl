@@ -348,7 +348,7 @@ moves(B,L) :-
     not(win(B,x)),                %%% if either player already won, then there are no available moves
     not(win(B,o)),
     blank_mark(E),
-    findall(N, square(B,N,E), L),
+    findall(R, square(B, _, E, R), L),
     L \= []
     .
 
@@ -387,7 +387,7 @@ utility(B,U) :-
 % Save the user the trouble of waiting  for the computer to search the entire minimax tree
 % by simply selecting a random square.
 
-minimax(D,[E,E,E, E,E,E, E,E,E],M,S,U) :-
+minimax(D,[E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E],M,S,U) :-
     blank_mark(E),
     random_int_1n(9,S),
     !
