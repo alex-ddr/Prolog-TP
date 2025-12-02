@@ -112,7 +112,7 @@ hello :-
     nl,
     nl,
     nl,
-    write('Welcome to Tic-Tac-Toe.'),
+    write('Welcome to Power 4 NoLimitEdition.'),
     read_players,
     output_players
     .
@@ -225,7 +225,6 @@ play(P) :-
 % The mark in a square(N) corresponds to an item in a list, as follows:
 
 bas(L,N,M,R):-R=N, nth1(N, L, M), !.
-bas(L,N,M,R):-R is N-7, R>0, nth1(R, L, M), !.
 bas(L,N,M,R):-R1 is N-7, R1>0, bas(L,R1,M,R).
 
 square(L,N,M,R):-
@@ -241,42 +240,61 @@ square(L,N,M,R):-
 % Players win by having their mark in one of the following square configurations:
 %
 
+win(B, P) :-
+    between(1, 42, Idx),
+    win2(B, Idx, P, 4),
+    !.
 
-win(B,Idx,P,Compteur):- win_ligne(B,Idx,P,Compteur); win_colonne(B,Idx,P,Compteur); win_diag1(B,Idx,P,Compteur); win_diag2(B,Idx,P,Compteur).
 
+win2(B,Idx,P,Compteur):- win_ligne(B,Idx,P,Compteur); win_colonne(B,Idx,P,Compteur); win_diag1(B,Idx,P,Compteur); win_diag2(B,Idx,P,Compteur).
+
+%win ligne marche
 win_ligne(_, _, _, 0).
 win_ligne(B, Idx, P, Compteur) :-
-    NextIdx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 1,
-        NextCompteur is Compteur - 1,
+    Test1 is ((NextIdx-1) div 7),
+    Test2 is ((Idx - 1) div 7),
+    Test1 = Test2,
+    NextCompteur is Compteur - 1,
     win_ligne(B, NextIdx, P, NextCompteur).
 
+%marche avec 1 probleme de colonne
 win_colonne(_, _, _, 0).
 win_colonne(B, Idx, P, Compteur) :-
-    NextIdx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 7,
+    NextIdx < 43,
     NextCompteur is Compteur - 1,
     win_colonne(B, NextIdx, P, NextCompteur).
 
+%marche pas
 win_diag1(_, _, _, 0).
 win_diag1(B, Idx, P, Compteur) :-
-    NextIdx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 8,
-        NextCompteur is Compteur - 1,
+    NextIdx < 43,
+    %test not crossing
+    Col1 is (1+(Idx  mod 7)),
+    Col2 is (1+(NextIdx mod 7)),
+    Col1 < Col2,
+    NextCompteur is Compteur - 1,
     win_diag1(B, NextIdx, P, NextCompteur).
 
+%normalement marche
 win_diag2(_, _, _, 0).
 win_diag2(B, Idx, P, Compteur) :-
-    NextIdx > 0,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx - 6,
+    NextIdx > 0,
+    %test not crossing
+    Col1 is (1+(Idx  mod 7)),
+    Col2 is (1+(NextIdx mod 7)),
+    Col1 > Col2,
     NextCompteur is Compteur - 1,
     win_diag2(B, NextIdx, P, NextCompteur).
 
@@ -300,22 +318,26 @@ move(B,S,M,B2) :-
 % determines when the game is over
 %
 game_over(P, B) :-
-    game_over2(P, B, 1)
-    .
-game_over2(_,_,42).
+    between(1,43,I),
+    game_over2(P, B, I).
+game_over2(_,_,43):- false, !.
 game_over2(P, B, I):-
     opponent_mark(P, M),   %%% game is over if opponent wins
-    win(B, I, M, 4),
-    I1 is I + 1,
-    game_over2(P,B,I1)
-    .
+    win2(B, I, M, 4),
+    !.
 
-game_over2(P, B, I) :-
+%game_over2(P, B, I) :-
+%    blank_mark(E),
+ %   not(square(B,_,E,_)),     %%% game is over if opponent wins
+ %   I1 is I + 1,
+  %  game_over2(P,B,I1)
+   % .
+
+  %jsp si cela marche
+game_over2(_,B,_):-
     blank_mark(E),
-    not(square(B,_,E,_)),     %%% game is over if opponent wins
-    I1 is I + 1,
-    game_over2(P,B,I1)
-    .
+    \+ (between(1,42,I), square(B, I, E, _)).
+
 
 
 %.......................................
@@ -343,10 +365,11 @@ make_move2(human, P, B, B2) :-
     read(S),
 
     blank_mark(E),
-    square(B, S, E),
+    square(B, S, E, R),
     player_mark(P, M),
-    move(B, S, M, B2), !
+    move(B, R, M, B2), !
     .
+
 
 make_move2(human, P, B, B2) :-
     nl,
@@ -537,6 +560,22 @@ better2(D,R,M,S1,U1,S2,U2,  S,U) :-
 %%% OUTPUT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+:- use_module(library(ansi_term)).
+
+color_val(x) :-
+    Circle = 'xè',
+    ansi_format([fg(red)], Circle, []).
+color_val(o) :-
+    Circle = 'oè',
+    ansi_format([fg(blue)], Circle, []).
+color_val(V) :-
+    write(V).
+
+
+
+
+
 output_players :-
     nl,
     player(1, V1),
@@ -571,22 +610,23 @@ output_winner(B) :-
 output_board(B) :-
     nl,
     nl,
-    write('1'), write(' '), write('2'),  write(' '), write('3'),  write(' '), write('4'),  write(' '), write('5'),  write(' '), write('6'),  write(' '), write('7'), nl,
-    writeln('__________'),
-    output_line(0, B), write('<- 1'), nl,
-    writeln('__________'),
-    output_line(7, B), write('<- 2'), nl,
-    writeln('__________'),
-    output_line(14, B), write('<- 3'), nl,
-    writeln('__________'),
-    output_line(21, B), write('<- 4'), nl,
-    writeln('__________'),
-    output_line(28, B), write('<- 5'), nl,
-    writeln('__________'),
+    write(' 1'), write(' '), write('2'),  write(' '), write('3'),  write(' '), write('4'),  write(' '), write('5'),  write(' '), write('6'),  write(' '), write('7'), nl,
+    writeln('_______________'),
+    output_line(0, B), nl,
+    writeln('_______________'),
+    output_line(7, B), nl,
+    writeln('_______________'),
+    output_line(14, B), nl,
+    writeln('_______________'),
+    output_line(21, B), nl,
+    writeln('_______________'),
+    output_line(28, B), nl,
+    writeln('_______________'),
     output_line(35, B),
     !.
 
 output_line(N, B) :-
+    write('|'),
     printVal(N, B), write('|'),
 
     N1 is N+1,
@@ -605,7 +645,7 @@ output_line(N, B) :-
     printVal(N5, B), write('|'),
 
     N6 is N+6,
-    printVal(N6, B),
+    printVal(N6, B),write('|'),
     !.
 
 
@@ -620,7 +660,7 @@ printVal(N, B) :-
     nth0(N, B, Val),
     blank_mark(E),
     not(E = Val),
-    write(Val)
+    color_val(Val)
     .
 
 

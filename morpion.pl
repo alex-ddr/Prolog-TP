@@ -240,42 +240,61 @@ square(L,N,M,R):-
 % Players win by having their mark in one of the following square configurations:
 %
 
+win(B, P) :-
+    between(1, 42, Idx),
+    win2(B, Idx, P, 4),
+    !.
 
-win(B,Idx,P,Compteur):- win_ligne(B,Idx,P,Compteur); win_colonne(B,Idx,P,Compteur); win_diag1(B,Idx,P,Compteur); win_diag2(B,Idx,P,Compteur).
 
+win2(B,Idx,P,Compteur):- win_ligne(B,Idx,P,Compteur); win_colonne(B,Idx,P,Compteur); win_diag1(B,Idx,P,Compteur); win_diag2(B,Idx,P,Compteur).
+
+%win ligne marche
 win_ligne(_, _, _, 0).
 win_ligne(B, Idx, P, Compteur) :-
-    NextIdx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 1,
-        NextCompteur is Compteur - 1,
+    Test1 is ((NextIdx-1) div 7),
+    Test2 is ((Idx - 1) div 7),
+    Test1 = Test2,
+    NextCompteur is Compteur - 1,
     win_ligne(B, NextIdx, P, NextCompteur).
 
+%marche avec 1 probleme de colonne
 win_colonne(_, _, _, 0).
 win_colonne(B, Idx, P, Compteur) :-
-    NextIdx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 7,
+    NextIdx < 43,
     NextCompteur is Compteur - 1,
     win_colonne(B, NextIdx, P, NextCompteur).
 
+%marche pas
 win_diag1(_, _, _, 0).
 win_diag1(B, Idx, P, Compteur) :-
-    NextIdx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 8,
-        NextCompteur is Compteur - 1,
+    NextIdx < 43,
+    %test not crossing
+    Col1 is (1+(Idx  mod 7)),
+    Col2 is (1+(NextIdx mod 7)),
+    Col1 < Col2,
+    NextCompteur is Compteur - 1,
     win_diag1(B, NextIdx, P, NextCompteur).
 
+%normalement marche
 win_diag2(_, _, _, 0).
 win_diag2(B, Idx, P, Compteur) :-
-    NextIdx > 0,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx - 6,
+    NextIdx > 0,
+    %test not crossing
+    Col1 is (1+(Idx  mod 7)),
+    Col2 is (1+(NextIdx mod 7)),
+    Col1 > Col2,
     NextCompteur is Compteur - 1,
     win_diag2(B, NextIdx, P, NextCompteur).
 
@@ -299,22 +318,26 @@ move(B,S,M,B2) :-
 % determines when the game is over
 %
 game_over(P, B) :-
-    game_over2(P, B, 1)
-    .
-game_over2(_,_,42).
+    between(1,43,I),
+    game_over2(P, B, I).
+game_over2(_,_,43):- false, !.
 game_over2(P, B, I):-
     opponent_mark(P, M),   %%% game is over if opponent wins
-    win(B, I, M, 4),
-    I1 is I + 1,
-    game_over2(P,B,I1)
-    .
+    win2(B, I, M, 4),
+    !.
 
-game_over2(P, B, I) :-
+%game_over2(P, B, I) :-
+%    blank_mark(E),
+ %   not(square(B,_,E,_)),     %%% game is over if opponent wins
+ %   I1 is I + 1,
+  %  game_over2(P,B,I1)
+   % .
+
+  %jsp si cela marche
+game_over2(_,B,_):-
     blank_mark(E),
-    not(square(B,_,E,_)),     %%% game is over if opponent wins
-    I1 is I + 1,
-    game_over2(P,B,I1)
-    .
+    \+ (between(1,42,I), square(B, I, E, _)).
+
 
 
 %.......................................
@@ -541,10 +564,10 @@ better2(D,R,M,S1,U1,S2,U2,  S,U) :-
 :- use_module(library(ansi_term)).
 
 color_val(x) :-
-    Circle = '‚óè',
+    Circle = '‚-è',
     ansi_format([fg(red)], Circle, []).
 color_val(o) :-
-    Circle = '‚óè',
+    Circle = '‚-è',
     ansi_format([fg(blue)], Circle, []).
 color_val(V) :-
     write(V).
