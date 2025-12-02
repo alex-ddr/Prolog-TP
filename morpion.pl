@@ -120,7 +120,12 @@ hello :-
 initialize :-
     random_seed,          %%% use current time to initialize random number generator
     blank_mark(E),
-    asserta( board([E,E,E, E,E,E, E,E,E]) )  %%% create a blank board
+    asserta( board([E,E,E,E,E,E,E,
+                    E,E,E,E,E,E,E,
+                    E,E,E,E,E,E,E,
+                    E,E,E,E,E,E,E,
+                    E,E,E,E,E,E,E,
+                    E,E,E,E,E,E,E  ]) )  %%% create a blank board
     .
 
 goodbye :-
@@ -219,15 +224,15 @@ play(P) :-
 %.......................................
 % The mark in a square(N) corresponds to an item in a list, as follows:
 
-square([M,_,_,_,_,_,_,_,_],1,M).
-square([_,M,_,_,_,_,_,_,_],2,M).
-square([_,_,M,_,_,_,_,_,_],3,M).
-square([_,_,_,M,_,_,_,_,_],4,M).
-square([_,_,_,_,M,_,_,_,_],5,M).
-square([_,_,_,_,_,M,_,_,_],6,M).
-square([_,_,_,_,_,_,M,_,_],7,M).
-square([_,_,_,_,_,_,_,M,_],8,M).
-square([_,_,_,_,_,_,_,_,M],9,M).
+bas(L,N,M,R):-R=N, nth1(N, L, M), !.
+bas(L,N,M,R):-R is N-7, R>0, nth1(R, L, M), !.
+bas(L,N,M,R):-R1 is N-7, R1>0, bas(L,R1,M,R).
+
+square(L,N,M,R):-
+    N2 is N + 35,
+    bas(L,N2,M,R).
+
+
 
 
 %.......................................
