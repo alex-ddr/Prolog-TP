@@ -308,10 +308,11 @@ make_move2(human, P, B, B2) :-
     read(S),
 
     blank_mark(E),
-    square(B, S, E),
+    square(B, S, E, R),
     player_mark(P, M),
-    move(B, S, M, B2), !
+    move(B, R, M, B2), !
     .
+
 
 make_move2(human, P, B, B2) :-
     nl,
