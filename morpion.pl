@@ -536,49 +536,64 @@ output_winner(B) :-
 output_board(B) :-
     nl,
     nl,
-    output_square(B,1),
-    write('|'),
-    output_square(B,2),
-    write('|'),
-    output_square(B,3),
-    nl,
-    write('-----------'),
-    nl,
-    output_square(B,4),
-    write('|'),
-    output_square(B,5),
-    write('|'),
-    output_square(B,6),
-    nl,
-    write('-----------'),
-    nl,
-    output_square(B,7),
-    write('|'),
-    output_square(B,8),
-    write('|'),
-    output_square(B,9), !
+    write('1'), write(' '), write('2'),  write(' '), write('3'),  write(' '), write('4'),  write(' '), write('5'),  write(' '), write('6'),  write(' '), write('7'), nl,
+    writeln('__________'),
+    output_line(0, B), write('<- 1'), nl,
+    writeln('__________'),
+    output_line(7, B), write('<- 2'), nl,
+    writeln('__________'),
+    output_line(14, B), write('<- 3'), nl,
+    writeln('__________'),
+    output_line(21, B), write('<- 4'), nl,
+    writeln('__________'),
+    output_line(28, B), write('<- 5'), nl,
+    writeln('__________'),
+    output_line(35, B),
+    !.
+
+output_line(N, B) :-
+    printVal(N, B), write('|'),
+
+    N1 is N+1,
+    printVal(N1, B), write('|'),
+
+    N2 is N+2,
+    printVal(N2, B), write('|'),
+
+    N3 is N+3,
+    printVal(N3, B), write('|'),
+
+    N4 is N+4,
+    printVal(N4, B), write('|'),
+
+    N5 is N+5,
+    printVal(N5, B), write('|'),
+
+    N6 is N+6,
+    printVal(N6, B),
+    !.
+
+
+printVal(N, B) :-
+    nth0(N, B, Val),
+    blank_mark(E),
+    E = Val,
+    write(' ')
     .
+
+printVal(N, B) :-
+    nth0(N, B, Val),
+    blank_mark(E),
+    not(E = Val),
+    write(Val)
+    .
+
 
 output_board :-
     board(B),
     output_board(B), !
     .
 
-output_square(B,S) :-
-    square(B,S,M),
-    write(' '),
-    output_square2(S,M),
-    write(' '), !
-    .
-
-output_square2(S, E) :-
-    blank_mark(E),
-    write(S), !              %%% if square is empty, output the square number
-    .
-
-output_square2(S, M) :-
-    write(M), !              %%% if square is marked, output the mark
-    .
 
 output_value(D,S,U) :-
     D == 1,
