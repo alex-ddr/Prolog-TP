@@ -258,32 +258,60 @@ win2(B,Idx,P,Compteur):- win_ligne(B,Idx,P,Compteur); win_colonne(B,Idx,P,Compte
 %win ligne marche
 win_ligne(_, _, _, 0).
 win_ligne(B, Idx, P, Compteur) :-
+    Idx < 43,
+    Compteur<4,
+    Test is (Idx mod 7),
+    Test \= 1,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 1,
-    Test1 is ((NextIdx-1) div 7),
-    Test2 is ((Idx - 1) div 7),
-    Test1 = Test2,
+    writeln(""),
+    write(NextIdx),
+    write("    "),
+    write(Compteur),
+    NextCompteur is Compteur - 1,
+    win_ligne(B, NextIdx, P, NextCompteur).
+
+win_ligne(B, Idx, P, Compteur) :-
+    Idx < 43,
+    Compteur=4,
+    nth1(Idx, B, Elem),
+    Elem = P,
+    NextIdx is Idx + 1,
+    writeln(""),
+    write(NextIdx),
+    write("    "),
+    write(Compteur),
     NextCompteur is Compteur - 1,
     win_ligne(B, NextIdx, P, NextCompteur).
 
 %marche avec 1 probleme de colonne
+%win_colonne(B,_,_,1):- writeln(B).
+
 win_colonne(_, _, _, 0).
 win_colonne(B, Idx, P, Compteur) :-
+    Idx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 7,
-    NextIdx < 43,
+    %writeln(""),
+    %write(NextIdx),
+    %write("    "),
+    %write(Compteur),
     NextCompteur is Compteur - 1,
     win_colonne(B, NextIdx, P, NextCompteur).
 
 %marche pas
 win_diag1(_, _, _, 0).
 win_diag1(B, Idx, P, Compteur) :-
+    Idx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 8,
-    NextIdx < 43,
+    %writeln(""),
+    %write(Compteur),
+    %write("  "),
+    %writeln(NextIdx),
     %test not crossing
     Col1 is (1+(Idx  mod 7)),
     Col2 is (1+(NextIdx mod 7)),
@@ -294,10 +322,15 @@ win_diag1(B, Idx, P, Compteur) :-
 %normalement marche
 win_diag2(_, _, _, 0).
 win_diag2(B, Idx, P, Compteur) :-
+    Idx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
-    NextIdx is Idx - 6,
-    NextIdx > 0,
+    NextIdx is Idx + 6,
+    %writeln(""),
+    %write(Compteur),
+    %write("  "),
+    %writeln(NextIdx),
+
     %test not crossing
     Col1 is (1+(Idx  mod 7)),
     Col2 is (1+(NextIdx mod 7)),
@@ -678,10 +711,10 @@ better2(D,R,M,S1,U1,S2,U2,  S,U) :-
 :- use_module(library(ansi_term)).
 
 color_val(x) :-
-    Circle = '�-�',
+    Circle = '@�',
     ansi_format([fg(red)], Circle, []).
 color_val(o) :-
-    Circle = '�-�',
+    Circle = '@�',
     ansi_format([fg(blue)], Circle, []).
 color_val(V) :-
     write(V).
