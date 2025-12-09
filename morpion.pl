@@ -459,6 +459,7 @@ make_move2(computer, P, B, B2) :-
     write('Computer is thinking about next move...'),
     player_mark(P, M),
     minimax(0, B, M, S, U),
+	%randomAI(B, M, S),
     move(B,S,M,B2),
 
     nl,
@@ -470,6 +471,8 @@ make_move2(computer, P, B, B2) :-
     write('.')
     .
 
+% Random
+randomAI(B, M, S) :- blank_mark(E), repeat, Index is random(7), square(B, Index, E, S), !.
 
 %.......................................
 % moves
