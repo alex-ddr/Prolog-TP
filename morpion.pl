@@ -224,8 +224,15 @@ play(P) :-
 %.......................................
 % The mark in a square(N) corresponds to an item in a list, as follows:
 
-bas(L,N,M,R):-R=N, nth1(N, L, M), !.
-bas(L,N,M,R):-R1 is N-7, R1>0, bas(L,R1,M,R).
+bas(L,N,M,R):-
+    R=N,
+    nth1(N, L, M),
+    !.
+
+bas(L,N,M,R):-
+    R1 is N-7,
+    R1>0,
+    bas(L,R1,M,R).
 
 square(L,N,M,R):-
     N2 is N + 35,
@@ -251,32 +258,60 @@ win2(B,Idx,P,Compteur):- win_ligne(B,Idx,P,Compteur); win_colonne(B,Idx,P,Compte
 %win ligne marche
 win_ligne(_, _, _, 0).
 win_ligne(B, Idx, P, Compteur) :-
+    Idx < 43,
+    Compteur<4,
+    Test is (Idx mod 7),
+    Test \= 1,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 1,
-    Test1 is ((NextIdx-1) div 7),
-    Test2 is ((Idx - 1) div 7),
-    Test1 = Test2,
+    writeln(""),
+    write(NextIdx),
+    write("    "),
+    write(Compteur),
+    NextCompteur is Compteur - 1,
+    win_ligne(B, NextIdx, P, NextCompteur).
+
+win_ligne(B, Idx, P, Compteur) :-
+    Idx < 43,
+    Compteur=4,
+    nth1(Idx, B, Elem),
+    Elem = P,
+    NextIdx is Idx + 1,
+    writeln(""),
+    write(NextIdx),
+    write("    "),
+    write(Compteur),
     NextCompteur is Compteur - 1,
     win_ligne(B, NextIdx, P, NextCompteur).
 
 %marche avec 1 probleme de colonne
+%win_colonne(B,_,_,1):- writeln(B).
+
 win_colonne(_, _, _, 0).
 win_colonne(B, Idx, P, Compteur) :-
+    Idx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 7,
-    NextIdx < 43,
+    %writeln(""),
+    %write(NextIdx),
+    %write("    "),
+    %write(Compteur),
     NextCompteur is Compteur - 1,
     win_colonne(B, NextIdx, P, NextCompteur).
 
 %marche pas
 win_diag1(_, _, _, 0).
 win_diag1(B, Idx, P, Compteur) :-
+    Idx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 8,
-    NextIdx < 43,
+    %writeln(""),
+    %write(Compteur),
+    %write("  "),
+    %writeln(NextIdx),
     %test not crossing
     Col1 is (1+(Idx  mod 7)),
     Col2 is (1+(NextIdx mod 7)),
@@ -287,10 +322,15 @@ win_diag1(B, Idx, P, Compteur) :-
 %normalement marche
 win_diag2(_, _, _, 0).
 win_diag2(B, Idx, P, Compteur) :-
+    Idx < 43,
     nth1(Idx, B, Elem),
     Elem = P,
-    NextIdx is Idx - 6,
-    NextIdx > 0,
+    NextIdx is Idx + 6,
+    %writeln(""),
+    %write(Compteur),
+    %write("  "),
+    %writeln(NextIdx),
+
     %test not crossing
     Col1 is (1+(Idx  mod 7)),
     Col2 is (1+(NextIdx mod 7)),
@@ -472,6 +512,31 @@ minimax(D,B,M,S,U) :-
     utility(B,U)
     .
 
+%.......................................
+% alphabeta
+%.......................................
+
+% Version alpha-beta de minimax
+alphabeta(D, B, M, S, U, Alpha, Beta) :-
+    D2 is D + 1,
+    moves(B, L),
+    best_alphabeta(D2, B, M, L, S, U, Alpha, Beta).
+
+best_alphabeta(D, B, M, [S1|T], S, U, Alpha, Beta) :-
+    move(B, S1, M, B2),
+    inverse_mark(M, M2),
+    alphabeta(D, B2, M2, _S, U1, Alpha, Beta),
+    
+    % Mise à jour de Alpha/Beta
+    update_bounds(M, U1, Alpha, Beta, Alpha2, Beta2),
+    
+    % Coupe si Alpha >= Beta
+    (Alpha2 >= Beta2 ->
+        S = S1, U = U1  % Coupe !
+    ;
+        best_alphabeta(D, B, M, T, S2, U2, Alpha2, Beta2),
+        better(D, M, S1, U1, S2, U2, S, U)
+    ).
 
 
 %.......................................
@@ -490,13 +555,13 @@ count_threats(B, M, Count) :-
     length(L, Count).
 
 threat_pattern(B, M) :-
-    % Cherche 3 pions alignés avec 1 case videí
+    % Cherche 3 pions alignés avec 1 case vide
     square(B, _, M, S1),
     square(B, _, M, S2),
     square(B, _, M, S3),
     square(B, _, E, S4),
     blank_mark(E),
-    aligned(S1, S2, S3, S4).  % Vérifier íl'alignement
+    aligned(S1, S2, S3, S4).  % Vérifier l'alignement
 
 
 %.......................................
@@ -683,10 +748,10 @@ better2(D,R,M,S1,U1,S2,U2,  S,U) :-
 :- use_module(library(ansi_term)).
 
 color_val(x) :-
-    Circle = '�-�',
+    Circle = '@�',
     ansi_format([fg(red)], Circle, []).
 color_val(o) :-
-    Circle = '�-�',
+    Circle = '@�',
     ansi_format([fg(blue)], Circle, []).
 color_val(V) :-
     write(V).
