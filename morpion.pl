@@ -212,7 +212,7 @@ human_playing(M) :-
 play(P) :-
     board(B), !,
     output_board(B), !,
-    % not(game_over(P, B)), !,
+	not(game_over(P, B)), !,
     make_move(P, B), !,
     next_player(P, P2), !,
     play(P2), !
