@@ -224,8 +224,15 @@ play(P) :-
 %.......................................
 % The mark in a square(N) corresponds to an item in a list, as follows:
 
-bas(L,N,M,R):-R=N, nth1(N, L, M), !.
-bas(L,N,M,R):-R1 is N-7, R1>0, bas(L,R1,M,R).
+bas(L,N,M,R):-
+    R=N,
+    nth1(N, L, M),
+    !.
+
+bas(L,N,M,R):-
+    R1 is N-7,
+    R1>0,
+    bas(L,R1,M,R).
 
 square(L,N,M,R):-
     N2 is N + 35,
@@ -472,6 +479,31 @@ minimax(D,B,M,S,U) :-
     utility(B,U)
     .
 
+%.......................................
+% alphabeta
+%.......................................
+
+% Version alpha-beta de minimax
+alphabeta(D, B, M, S, U, Alpha, Beta) :-
+    D2 is D + 1,
+    moves(B, L),
+    best_alphabeta(D2, B, M, L, S, U, Alpha, Beta).
+
+best_alphabeta(D, B, M, [S1|T], S, U, Alpha, Beta) :-
+    move(B, S1, M, B2),
+    inverse_mark(M, M2),
+    alphabeta(D, B2, M2, _S, U1, Alpha, Beta),
+    
+    % Mise √† jour de Alpha/Beta
+    update_bounds(M, U1, Alpha, Beta, Alpha2, Beta2),
+    
+    % Coupe si Alpha >= Beta
+    (Alpha2 >= Beta2 ->
+        S = S1, U = U1  % Coupe !
+    ;
+        best_alphabeta(D, B, M, T, S2, U2, Alpha2, Beta2),
+        better(D, M, S1, U1, S2, U2, S, U)
+    ).
 
 
 %.......................................
@@ -490,13 +522,13 @@ count_threats(B, M, Count) :-
     length(L, Count).
 
 threat_pattern(B, M) :-
-    % Cherche 3 pions align√©s avec 1 case vide√≠
+    % Cherche 3 pions align√©s avec 1 case vide
     square(B, _, M, S1),
     square(B, _, M, S2),
     square(B, _, M, S3),
     square(B, _, E, S4),
     blank_mark(E),
-    aligned(S1, S2, S3, S4).  % V√©rifier √≠l'alignement
+    aligned(S1, S2, S3, S4).  % V√©rifier l'alignement
 
 
 %.......................................
@@ -646,10 +678,10 @@ better2(D,R,M,S1,U1,S2,U2,  S,U) :-
 :- use_module(library(ansi_term)).
 
 color_val(x) :-
-    Circle = '‚-è',
+    Circle = 'ÔøΩ-ÔøΩ',
     ansi_format([fg(red)], Circle, []).
 color_val(o) :-
-    Circle = '‚-è',
+    Circle = 'ÔøΩ-ÔøΩ',
     ansi_format([fg(blue)], Circle, []).
 color_val(V) :-
     write(V).
