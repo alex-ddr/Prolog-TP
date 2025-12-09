@@ -266,10 +266,10 @@ win_ligne(B, Idx, P, Compteur) :-
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 1,
-    writeln(""),
-    write(NextIdx),
-    write("    "),
-    write(Compteur),
+   % writeln(""),
+    %write(NextIdx),
+    %write("    "),
+    %write(Compteur),
     NextCompteur is Compteur - 1,
     win_ligne(B, NextIdx, P, NextCompteur).
 
@@ -279,10 +279,10 @@ win_ligne(B, Idx, P, Compteur) :-
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 1,
-    writeln(""),
-    write(NextIdx),
-    write("    "),
-    write(Compteur),
+   % writeln(""),
+   % write(NextIdx),
+   % write("    "),
+   % write(Compteur),
     NextCompteur is Compteur - 1,
     win_ligne(B, NextIdx, P, NextCompteur).
 
@@ -302,10 +302,11 @@ win_colonne(B, Idx, P, Compteur) :-
     NextCompteur is Compteur - 1,
     win_colonne(B, NextIdx, P, NextCompteur).
 
-%marche pas
+%marche
 win_diag1(_, _, _, 0).
 win_diag1(B, Idx, P, Compteur) :-
     Idx < 43,
+    Idx \= 42,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 8,
@@ -314,9 +315,23 @@ win_diag1(B, Idx, P, Compteur) :-
     %write("  "),
     %writeln(NextIdx),
     %test not crossing
-    Col1 is (1+(Idx  mod 7)),
-    Col2 is (1+(NextIdx mod 7)),
+    Col1 is (1+((Idx-1)  mod 7)),
+    Col2 is (1+((NextIdx-1) mod 7)),
     Col1 < Col2,
+    NextCompteur is Compteur - 1,
+    win_diag1(B, NextIdx, P, NextCompteur).
+
+win_diag1(B, Idx, P, Compteur) :-
+    Idx < 43,
+    Idx = 42,
+    nth1(Idx, B, Elem),
+    Elem = P,
+    NextIdx is Idx + 8,
+    %writeln(""),
+    %write(Compteur),
+    %write("  "),
+    %writeln(NextIdx),
+    %test not crossing
     NextCompteur is Compteur - 1,
     win_diag1(B, NextIdx, P, NextCompteur).
 
@@ -324,6 +339,25 @@ win_diag1(B, Idx, P, Compteur) :-
 win_diag2(_, _, _, 0).
 win_diag2(B, Idx, P, Compteur) :-
     Idx < 43,
+    Idx \= 36,
+    nth1(Idx, B, Elem),
+    Elem = P,
+    NextIdx is Idx + 6,
+   % writeln(""),
+    %write(Compteur),
+    %write("  "),
+    %writeln(NextIdx),
+
+    %test not crossing
+    Col1 is (1+((Idx-1)  mod 7)),
+    Col2 is (1+((NextIdx-1) mod 7)),
+    Col1 > Col2,
+    NextCompteur is Compteur - 1,
+    win_diag2(B, NextIdx, P, NextCompteur).
+
+win_diag2(B, Idx, P, Compteur) :-
+    Idx < 43,
+    Idx = 36,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 6,
@@ -333,11 +367,9 @@ win_diag2(B, Idx, P, Compteur) :-
     %writeln(NextIdx),
 
     %test not crossing
-    Col1 is (1+(Idx  mod 7)),
-    Col2 is (1+(NextIdx mod 7)),
-    Col1 > Col2,
     NextCompteur is Compteur - 1,
     win_diag2(B, NextIdx, P, NextCompteur).
+
 
 
 
@@ -378,6 +410,8 @@ game_over2(P, B, I):-
 game_over2(_,B,_):-
     blank_mark(E),
     \+ (between(1,42,I), square(B, I, E, _)).
+
+
 
 
 
@@ -1014,3 +1048,266 @@ get_item2( [_|T], N, A, V) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% End of program
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%Test
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+test :-
+    test1,
+    test2,
+    test_horizontal,
+    test_vertical,
+    test_diag_down,
+    test_diag_up,
+    test_corner_topleft_down,
+    test_corner_topright_down,
+    test_corner_bottomleft_up,
+    test_corner_bottomright_up,
+    test_line_start,
+    test_line_start2,
+    test_line_start3,
+    test_line_end,
+    test_column_start,
+    test_column_end,
+    test_nowin,
+    test_nowin_across_rows,
+    test_draw.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TES TESTS ORIGINAUX
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test1 :-
+    blank_mark(E),
+    game_over(2,
+              [E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,x,x,x,x,E]).
+
+test2 :-
+    blank_mark(E),
+    game_over(1,
+              [E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               o,E,E,E,E,E,E,
+               o,E,E,E,E,E,E,
+               o,E,E,E,E,E,E,
+               o,E,E,x,x,x,E]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% VICTOIRE HORIZONTALE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test_horizontal :-
+    blank_mark(E),
+    game_over(2,
+              [E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               x,x,x,x,E,E,E]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% VICTOIRE VERTICALE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test_vertical :-
+    blank_mark(E),
+    game_over(2,
+              [E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               x,E,E,E,E,E,E,
+               x,E,E,E,E,E,E,
+               x,E,E,E,E,E,E,
+               x,E,E,E,E,E,E]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% VICTOIRE DIAGONALE ↘
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test_diag_down :-
+    blank_mark(E),
+    game_over(2,
+              [x,E,E,E,E,E,E,
+               E,x,E,E,E,E,E,
+               E,E,x,E,E,E,E,
+               E,E,E,x,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% VICTOIRE DIAGONALE ↗
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test_diag_up :-
+    blank_mark(E),
+    game_over(2,
+              [E,E,E,E,x,E,E,
+               E,E,E,x,E,E,E,
+               E,E,x,E,E,E,E,
+               E,x,E,E,E,E,E,
+               x,E,E,E,E,E,E,
+               E,E,E,E,E,E,E]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DIAGONALES PARTANT DES 4 COINS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test_corner_topleft_down :-
+    blank_mark(E),
+    game_over(2,
+              [x,E,E,E,E,E,E,
+               E,x,E,E,E,E,E,
+               E,E,x,E,E,E,E,
+               E,E,E,x,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E]).
+
+test_corner_topright_down :-
+    blank_mark(E),
+    game_over(2,
+              [E,E,E,E,E,E,x,
+               E,E,E,E,E,x,E,
+               E,E,E,E,x,E,E,
+               E,E,E,x,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E]).
+
+test_corner_bottomleft_up :-
+    blank_mark(E),
+    game_over(2,
+              [E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,x,E,E,E,
+               E,E,x,E,E,E,E,
+               E,x,E,E,E,E,E,
+               x,E,E,E,E,E,E]).
+
+test_corner_bottomright_up :-
+    blank_mark(E),
+    game_over(2,
+              [E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,x,E,E,E,
+               E,E,E,E,x,E,E,
+               E,E,E,E,E,x,E,
+               E,E,E,E,E,E,x]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CAS PARTICULIERS : DÉBUT / FIN DE LIGNE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test_line_start :-
+    blank_mark(E),
+    game_over(2,
+              [E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               x,x,x,x,E,E,E]).
+
+test_line_start2 :-
+    blank_mark(E),
+    \+ game_over(2,
+              [E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,x,
+               x,x,x,E,E,E,E]).
+
+test_line_start3 :-
+    blank_mark(E),
+    \+ game_over(2,
+              [E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,x,x,x,
+               x,E,E,E,E,E,E]).
+
+
+
+test_line_end :-
+    blank_mark(E),
+    game_over(2,
+              [E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,x,x,x,x]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CAS PARTICULIERS : DÉBUT / FIN DE COLONNE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test_column_start :-
+    blank_mark(E),
+    game_over(2,
+              [x,E,E,E,E,E,E,
+               x,E,E,E,E,E,E,
+               x,E,E,E,E,E,E,
+               x,E,E,E,E,E,E,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E]).
+
+test_column_end :-
+    blank_mark(E),
+    game_over(2,
+              [E,E,E,E,E,E,x,
+               E,E,E,E,E,E,x,
+               E,E,E,E,E,E,x,
+               E,E,E,E,E,E,x,
+               E,E,E,E,E,E,E,
+               E,E,E,E,E,E,E]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SITUATIONS SANS VICTOIRE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test_nowin :-
+    blank_mark(E),
+    \+ game_over(2,
+                 [x,x,E,x,E,E,E,
+                  E,E,E,E,E,E,E,
+                  E,E,E,E,E,E,E,
+                  E,E,E,E,E,E,E,
+                  E,E,E,E,E,E,E,
+                  E,E,E,E,E,E,E]).
+
+% alignement coupé entre deux lignes → pas victoire
+test_nowin_across_rows :-
+    blank_mark(E),
+    \+ game_over(2,
+                 [E,E,E,E,E,E,E,
+                  E,E,E,E,E,E,E,
+                  x,x,x,E,E,E,E,
+                  E,E,E,x,E,E,E,
+                  E,E,E,E,E,E,E,
+                  E,E,E,E,E,E,E]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ÉGALITÉ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test_draw :-
+    game_over(_,
+              [x,o,x,o,x,o,x,
+               o,x,o,x,o,x,o,
+               x,o,x,o,x,o,x,
+               o,x,o,x,o,x,o,
+               x,o,x,o,x,o,x,
+               o,x,o,x,o,x,o]).
+
+
+%topright_up
+%topright_down
