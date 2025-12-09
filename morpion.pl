@@ -212,7 +212,7 @@ human_playing(M) :-
 play(P) :-
     board(B), !,
     output_board(B), !,
-    not(game_over(P, B)), !,
+    % not(game_over(P, B)), !,
     make_move(P, B), !,
     next_player(P, P2), !,
     play(P2), !
@@ -278,7 +278,7 @@ game_over2(P, B) :-
 
 game_over2(P, B) :-
     blank_mark(E),
-    not(square(B,S,E))     %%% game is over if opponent wins
+    not(square(B,S,E, _))     %%% game is over if opponent wins
     .
 
 
