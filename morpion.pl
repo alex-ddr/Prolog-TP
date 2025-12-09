@@ -252,6 +252,9 @@ win2(B,Idx,P,Compteur):- win_ligne(B,Idx,P,Compteur); win_colonne(B,Idx,P,Compte
 win_ligne(_, _, _, 0).
 win_ligne(B, Idx, P, Compteur) :-
     Idx < 43,
+    Compteur<4,
+    Test is (Idx mod 7),
+    Test \= 1,
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 1,
@@ -259,9 +262,19 @@ win_ligne(B, Idx, P, Compteur) :-
     write(NextIdx),
     write("    "),
     write(Compteur),
-    Test1 is ((NextIdx-1) div 7),
-    Test2 is ((Idx - 1) div 7),
-    Test1 = Test2,
+    NextCompteur is Compteur - 1,
+    win_ligne(B, NextIdx, P, NextCompteur).
+
+win_ligne(B, Idx, P, Compteur) :-
+    Idx < 43,
+    Compteur=4,
+    nth1(Idx, B, Elem),
+    Elem = P,
+    NextIdx is Idx + 1,
+    writeln(""),
+    write(NextIdx),
+    write("    "),
+    write(Compteur),
     NextCompteur is Compteur - 1,
     win_ligne(B, NextIdx, P, NextCompteur).
 

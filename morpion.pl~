@@ -255,9 +255,12 @@ win_ligne(B, Idx, P, Compteur) :-
     nth1(Idx, B, Elem),
     Elem = P,
     NextIdx is Idx + 1,
-    Test1 is ((NextIdx-1) div 7),
-    Test2 is ((Idx - 1) div 7),
-    Test1 = Test2,
+    writeln(""),
+    write(NextIdx),
+    write("    "),
+    write(Compteur),
+    Test is (NextIdx mod 7),
+    Test \= 1,
     NextCompteur is Compteur - 1,
     win_ligne(B, NextIdx, P, NextCompteur).
 
