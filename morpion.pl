@@ -539,15 +539,52 @@ consecutive_columns(S1, S2, S3, S4) :-
     col(S2, C2),
     col(S3, C3),
     col(S4, C4),
-    sort([C1,C2,C3,C4], [C1, C2, C3, C4]),  % Trier
-    C2 is C1 + 1,
-    C3 is C2 + 1,
-    C4 is C3 + 1.
+    sort([C1,C2,C3,C4], [CC1, CC2, CC3, CC4]),  % Trier
+    CC2 is CC1 + 1,
+    CC3 is CC2 + 1,
+    CC4 is CC3 + 1.
 
 % Calculer la colonne d'une case
 col(Square, Col) :-
     Col is Square mod 7.
 
+% Vérifier si 4 cases sont sur la même colonne
+same_column(S1, S2, S3, S4) :-
+	col(S1, C),
+	col(S2, C),
+	col(S3, C),
+	col(S4, C).
+
+% Vérifier si les colonnes sont consécutives
+consecutive_rows(S1, S2, S3, S4) :-
+	row(S1, R1),
+	row(S2, R2),
+	row(S3, R3),
+	row(S4, R4),
+	sort([R1, R2, R3, R4], [RR1, RR2, RR3, RR4]),
+	RR2 is RR1 + 1,
+	RR3 is RR2 + 1,
+	RR4 is RR3 + 1.
+
+diagonal_down(S1, S2, S3, S4):-
+	D1 is S1 mod 8,
+	D2 is S2 mod 8,
+	D3 is S3 mod 8,
+	D4 is S4 mod 8,
+    D1 = D2,
+    D2 = D3,
+    D3 = D4,
+	consecutive_columns(S1, S2, S3, S4).
+
+diagonal_up(S1, S2, S3, S4):-
+	D1 is S1 mod 6,
+    D2 is S2 mod 6,
+    D3 is S3 mod 6,
+    D4 is S4 mod 6,
+    D1 = D2,
+    D2 = D3,
+    D3 = D4,
+    consecutive_columns(S1, S2, S3, S4).
 
 %.......................................
 % best
