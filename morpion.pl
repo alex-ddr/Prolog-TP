@@ -235,6 +235,7 @@ bas(L,N,M,R):-
     bas(L,R1,M,R).
 
 square(L,N,M,R):-
+ 	N>0, N<8,
     N2 is N + 35,
     bas(L,N2,M,R).
 
