@@ -714,11 +714,6 @@ best_alphabeta(D, B, M, [S1|T], S, U, Alpha, Beta) :-
 % evaluate
 %.......................................
 % Évalue un plateau sans aller jusqu'à la fin
-evaluate(B, M, U) :-
-    count_threats(B, M, ThreatsM),      % Menaces du joueur M
-    inverse_mark(M, M2),
-    count_threats(B, M2, ThreatsM2),    % Menaces de l'adversaire
-    U is (ThreatsM - ThreatsM2) * 10.   % Score heuristique
 
 % Compte les alignements de 3 pions (menaces)
 count_threats(B, M, Count) :-
