@@ -484,8 +484,13 @@ moves(B,L) :-
     not(win(B,x)),                %%% if either player already won, then there are no available moves
     not(win(B,o)),
     blank_mark(E),
-    findall(R, square(B, _, E, R), L),
-    L \= []
+    findall(R,
+            (
+                between(1, 7, Col),   % on explore les colonnes 1 à 7
+                square(B, Col, E, R)  % R = case jouable dans cette colonne
+            ),
+            L),
+    L \= [].  
     .
 
 
@@ -517,25 +522,151 @@ utility(B,U) :-
 %.......................................
 % The minimax algorithm always assumes an optimal opponent.
 % For tic-tac-toe, optimal play will always result in a tie, so the algorithm is effectively playing not-to-lose.
-max_depth(8).
 % For the opening move against an optimal player, the best minimax can ever hope for is a tie.
 % So, technically speaking, any opening move is acceptable.
 % Save the user the trouble of waiting  for the computer to search the entire minimax tree
 % by simply selecting a random square.
 
+max_depth(5).
+Case(B, M, S):-nth0(S, B, M).
+
+%..........................
+%EVALUATE
+%..........................
+
+evaluate(B, M, U) :-
+    (   win(B, 'x')
+    ->  U = 10000
+    ;   win(B, 'o')
+    ->  U = -10000
+    ;   \+ moves(B, _)
+    ->  U = 0
+    ;   count_threats(B, M, ThreatsM),
+        inverse_mark(M, M2),
+        count_threats(B, M2, ThreatsM2),
+        center_score(B, M, Score),
+        U is ((ThreatsM - ThreatsM2) * 10 + Score*3 )
+    ).
+
+
+
+idx(Row, Col, I) :-
+    I is (Row - 1) * 7 + Col.
+
+window_indices(Row, Col, [I1,I2,I3,I4]) :-
+    between(1,6,Row),
+    between(1,4,Col),
+    idx(Row, Col,   I1),
+    idx(Row, Col+1, I2),
+    idx(Row, Col+2, I3),
+    idx(Row, Col+3, I4).
+
+window_indices_v(Row, Col, [I1,I2,I3,I4]) :-
+    between(1,3,Row),
+    between(1,7,Col),
+    idx(Row,   Col, I1),
+    idx(Row+1, Col, I2),
+    idx(Row+2, Col, I3),
+    idx(Row+3, Col, I4).
+
+window_indices_d1(Row, Col, [I1,I2,I3,I4]) :-
+    between(1,3,Row),
+    between(1,4,Col),
+    idx(Row,   Col,   I1),
+    idx(Row+1, Col+1, I2),
+    idx(Row+2, Col+2, I3),
+    idx(Row+3, Col+3, I4).
+
+window_indices_d2(Row, Col, [I1,I2,I3,I4]) :-
+    between(4,6,Row),
+    between(1,4,Col),
+    idx(Row,   Col,   I1),
+    idx(Row-1, Col+1, I2),
+    idx(Row-2, Col+2, I3),
+    idx(Row-3, Col+3, I4).
+
+line_threat_for(B, M, [I1,I2,I3,I4]) :-
+    nth1(I1, B, V1),
+    nth1(I2, B, V2),
+    nth1(I3, B, V3),
+    nth1(I4, B, V4),
+    blank_mark(E),
+    inverse_mark(M, Opp),
+    \+ member(Opp, [V1,V2,V3,V4]),
+    include(=(M), [V1,V2,V3,V4], Ms),
+    include(=(E), [V1,V2,V3,V4], Es),
+    length(Ms, CountM),
+    length(Es, CountE),
+    CountM =:= 3,
+    CountE =:= 1.
+
+threat_window(B, M) :-
+    window_indices(Row, Col, Idxs),
+    line_threat_for(B, M, Idxs).
+
+threat_window(B, M) :-
+    window_indices_v(Row, Col, Idxs),
+    line_threat_for(B, M, Idxs).
+
+threat_window(B, M) :-
+    window_indices_d1(Row, Col, Idxs),
+    line_threat_for(B, M, Idxs).
+
+threat_window(B, M) :-
+    window_indices_d2(Row, Col, Idxs),
+    line_threat_for(B, M, Idxs).
+
+count_threats(B, M, Count) :-
+    findall(1, threat_window(B, M), L),
+    length(L, Count).
+
+
+center_score(B, M, Score) :-
+    % indices de la colonne centrale (col = 4) : (Row-1)*7 + 4
+    findall(V,
+        ( between(1,6,Row),
+          idx(Row, 4, I),
+          nth1(I,B,V)
+        ),
+        Values),
+    blank_mark(E),
+    inverse_mark(M, Opp),
+    include(=(M), Values, Ms),
+    include(=(Opp), Values, Os),
+    length(Ms, MyCount),
+    length(Os, OppCount),
+    Score is MyCount - OppCount.
+
+
+
+
+
+% Compte les alignements de 3 pions (menaces)
+count_threats2(B, M, Count) :-
+    findall(1, threat_pattern(B, M), L),
+    length(L, Count).
+
+threat_pattern2(B, M) :-
+    % Cherche 3 pions alignes avec 1 case vide
+    case(B, M, S1),
+    case(B, M, S2),
+    case(B, M, S3),
+    case(B, E, S4),
+    blank_mark(E),
+    aligned(S1, S2, S3, S4).  % Verifier l'alignement
+
+
+
 minimax(D,[E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E],M,S,U) :-
     blank_mark(E),
-    random_int_1n(9,S),
-    !
-    .
+    random_int_1n(7, Col),   % colonne 1..7
+    square([E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E], Col, E, S),    % S = case jouable dans cette colonne
+    !.
 
-minimax(D, B, M, S, U) :-
-    max_depth(MaxD),
-    D >= MaxD,
-    !,
-    evaluate(B, M, U).
 
 minimax(D,B,M,S,U) :-
+    max_depth(MaxD),
+    D < MaxD,
     D2 is D + 1,
     moves(B,L),          %%% get the list of available moves
     !,
@@ -546,8 +677,10 @@ minimax(D,B,M,S,U) :-
 % if there are no more available moves,
 % then the minimax value is the utility of the given board position
 
+
 minimax(D,B,M,S,U) :-
-    utility(B,U)
+    evaluate(B, M, U)
+    .
     .
 
 %.......................................
