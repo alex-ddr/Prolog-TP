@@ -235,7 +235,7 @@ bas(L,N,M,R):-
     bas(L,R1,M,R).
 
 square(L,N,M,R):-
- 	N>0, N<8,
+	N>0, N<8,
     N2 is N + 35,
     bas(L,N2,M,R).
 
@@ -248,127 +248,22 @@ square(L,N,M,R):-
 % Players win by having their mark in one of the following square configurations:
 %
 
-win(B, P) :-
-    between(1, 42, Idx),
-    win2(B, Idx, P, 4),
-    !.
 
 
-win2(B,Idx,P,Compteur):- win_ligne(B,Idx,P,Compteur); win_colonne(B,Idx,P,Compteur); win_diag1(B,Idx,P,Compteur); win_diag2(B,Idx,P,Compteur).
+line_four(B, M, [I1,I2,I3,I4]) :-
+    nth1(I1,B,M),
+    nth1(I2,B,M),
+    nth1(I3,B,M),
+    nth1(I4,B,M).
 
-%win ligne marche
-win_ligne(_, _, _, 0).
-win_ligne(B, Idx, P, Compteur) :-
-    Idx < 43,
-    Compteur<4,
-    Test is (Idx mod 7),
-    Test \= 1,
-    nth1(Idx, B, Elem),
-    Elem = P,
-    NextIdx is Idx + 1,
-   % writeln(""),
-    %write(NextIdx),
-    %write("    "),
-    %write(Compteur),
-    NextCompteur is Compteur - 1,
-    win_ligne(B, NextIdx, P, NextCompteur).
+win(B, M) :- window_indices( _R,_C,Idxs),  line_four(B,M,Idxs), !.
+win(B, M) :- window_indices_v(_R,_C,Idxs), line_four(B,M,Idxs), !.
+win(B, M) :- window_indices_d1(_R,_C,Idxs),line_four(B,M,Idxs), !.
+win(B, M) :- window_indices_d2(_R,_C,Idxs),line_four(B,M,Idxs), !.
 
-win_ligne(B, Idx, P, Compteur) :-
-    Idx < 43,
-    Compteur=4,
-    nth1(Idx, B, Elem),
-    Elem = P,
-    NextIdx is Idx + 1,
-   % writeln(""),
-   % write(NextIdx),
-   % write("    "),
-   % write(Compteur),
-    NextCompteur is Compteur - 1,
-    win_ligne(B, NextIdx, P, NextCompteur).
 
-%marche avec 1 probleme de colonne
-%win_colonne(B,_,_,1):- writeln(B).
 
-win_colonne(_, _, _, 0).
-win_colonne(B, Idx, P, Compteur) :-
-    Idx < 43,
-    nth1(Idx, B, Elem),
-    Elem = P,
-    NextIdx is Idx + 7,
-    %writeln(""),
-    %write(NextIdx),
-    %write("    "),
-    %write(Compteur),
-    NextCompteur is Compteur - 1,
-    win_colonne(B, NextIdx, P, NextCompteur).
 
-%marche
-win_diag1(_, _, _, 0).
-win_diag1(B, Idx, P, Compteur) :-
-    Idx < 43,
-    Idx \= 42,
-    nth1(Idx, B, Elem),
-    Elem = P,
-    NextIdx is Idx + 8,
-    %writeln(""),
-    %write(Compteur),
-    %write("  "),
-    %writeln(NextIdx),
-    %test not crossing
-    Col1 is (1+((Idx-1)  mod 7)),
-    Col2 is (1+((NextIdx-1) mod 7)),
-    Col1 < Col2,
-    NextCompteur is Compteur - 1,
-    win_diag1(B, NextIdx, P, NextCompteur).
-
-win_diag1(B, Idx, P, Compteur) :-
-    Idx < 43,
-    Idx = 42,
-    nth1(Idx, B, Elem),
-    Elem = P,
-    NextIdx is Idx + 8,
-    %writeln(""),
-    %write(Compteur),
-    %write("  "),
-    %writeln(NextIdx),
-    %test not crossing
-    NextCompteur is Compteur - 1,
-    win_diag1(B, NextIdx, P, NextCompteur).
-
-%normalement marche
-win_diag2(_, _, _, 0).
-win_diag2(B, Idx, P, Compteur) :-
-    Idx < 43,
-    Idx \= 36,
-    nth1(Idx, B, Elem),
-    Elem = P,
-    NextIdx is Idx + 6,
-   % writeln(""),
-    %write(Compteur),
-    %write("  "),
-    %writeln(NextIdx),
-
-    %test not crossing
-    Col1 is (1+((Idx-1)  mod 7)),
-    Col2 is (1+((NextIdx-1) mod 7)),
-    Col1 > Col2,
-    NextCompteur is Compteur - 1,
-    win_diag2(B, NextIdx, P, NextCompteur).
-
-win_diag2(B, Idx, P, Compteur) :-
-    Idx < 43,
-    Idx = 36,
-    nth1(Idx, B, Elem),
-    Elem = P,
-    NextIdx is Idx + 6,
-    %writeln(""),
-    %write(Compteur),
-    %write("  "),
-    %writeln(NextIdx),
-
-    %test not crossing
-    NextCompteur is Compteur - 1,
-    win_diag2(B, NextIdx, P, NextCompteur).
 
 
 
@@ -390,28 +285,15 @@ move(B,S,M,B2) :-
 %.......................................
 % determines when the game is over
 %
+
+
 game_over(P, B) :-
-    between(1,43,I),
-    game_over2(P, B, I).
-game_over2(_,_,43):- false, !.
-game_over2(P, B, I):-
-    opponent_mark(P, M),   %%% game is over if opponent wins
-    win2(B, I, M, 4),
-    !.
+    opponent_mark(P, M),
+    win(B, M), !.
 
-%game_over2(P, B, I) :-
-%    blank_mark(E),
- %   not(square(B,_,E,_)),     %%% game is over if opponent wins
- %   I1 is I + 1,
-  %  game_over2(P,B,I1)
-   % .
-
-  %jsp si cela marche
-game_over2(_,B,_):-
+game_over(_, B) :-
     blank_mark(E),
     \+ (between(1,42,I), square(B, I, E, _)).
-
-
 
 
 
@@ -449,14 +331,15 @@ make_move2(human, P, B, B2) :-
 make_move2(human, P, B, B2) :-
     nl,
     nl,
-    write('Please select a numbered square.'),
+    writeln('Please select a numbered square.'),
     make_move2(human,P,B,B2)
     .
 
 make_move2(computer, P, B, B2) :-
+    P is 2,
     nl,
     nl,
-    write('Computer is thinking about next move...'),
+    writeln('Computer is thinking about next move...'),
     player_mark(P, M),
     minimax(0, B, M, S, U),
 	%randomAI(B, M, S),
@@ -471,6 +354,28 @@ make_move2(computer, P, B, B2) :-
     write('.')
     .
 
+make_move2(computer, P, B, B2) :-
+    P is 1,
+    nl,
+    nl,
+    writeln('Computer is thinking about next move...'),
+    player_mark(P, M),
+   % minimax(0, B, M, S, U),
+   % randomAI(B, M, S),
+    alphabeta(0, B, M, S, U, -1000000, 1000000),
+    move(B,S,M,B2),
+
+    nl,
+    nl,
+    write('Computer places '),
+    write(M),
+    write(' in square '),
+    write(S),
+    write('.')
+    .
+
+
+
 % Random
 randomAI(B, M, S) :- blank_mark(E), repeat, Index is random(7), square(B, Index, E, S), !.
 
@@ -480,41 +385,21 @@ randomAI(B, M, S) :- blank_mark(E), repeat, Index is random(7), square(B, Index,
 % retrieves a list of available moves (empty squares) on a board.
 %
 
+cols_order([4,3,5,2,6,1,7]).
+
+
 moves(B,L) :-
-    not(win(B,x)),                %%% if either player already won, then there are no available moves
-    not(win(B,o)),
+    not(win(B,'x')),                %%% if either player already won, then there are no available moves
+    not(win(B,'o')),
     blank_mark(E),
+    cols_order(Cols),
     findall(R,
-            (
-                between(1, 7, Col),   % on explore les colonnes 1 à 7
-                square(B, Col, E, R)  % R = case jouable dans cette colonne
-            ),
-            L),
-    L \= [].  
-    .
+        ( nth1(_, Cols, Col),
+          square(B, Col, E, R)
+        ),
+        L),
+    L \= [].
 
-
-%.......................................
-% utility
-%.......................................
-% determines the value of a given board position
-%
-
-utility(B,U) :-
-    win(B,'x'),
-    U = 1,
-    !
-    .
-
-utility(B,U) :-
-    win(B,'o'),
-    U = (-1),
-    !
-    .
-
-utility(B,U) :-
-    U = 0
-    .
 
 
 %.......................................
@@ -528,26 +413,24 @@ utility(B,U) :-
 % by simply selecting a random square.
 
 max_depth(5).
+max_depth_AlphaBeta(7).
 Case(B, M, S):-nth0(S, B, M).
 
 %..........................
 %EVALUATE
 %..........................
 
-evaluate(B, M, U) :-
-    (   win(B, 'x')
-    ->  U = 10000
-    ;   win(B, 'o')
-    ->  U = -10000
-    ;   \+ moves(B, _)
-    ->  U = 0
-    ;   count_threats(B, M, ThreatsM),
-        inverse_mark(M, M2),
-        count_threats(B, M2, ThreatsM2),
-        center_score(B, M, Score),
-        U is ((ThreatsM - ThreatsM2) * 10 + Score*3 )
-    ).
-
+evaluate(B, _M, U, D) :-
+    win(B,'x'), !, U is  100000 - D.
+evaluate(B, _M, U, D) :-
+    win(B,'o'), !, U is -100000 + D.
+evaluate(B, _M, 0, D) :-
+    \+ moves(B,_), !.   % draw
+evaluate(B, M, U, D) :-
+    count_threats(B, 'x', TX),
+    count_threats(B, 'o', TO),
+    center_score_abs(B, C),
+    U is (TX-TO)*10 + C*2.
 
 
 idx(Row, Col, I) :-
@@ -592,7 +475,7 @@ line_threat_for(B, M, [I1,I2,I3,I4]) :-
     nth1(I4, B, V4),
     blank_mark(E),
     inverse_mark(M, Opp),
-    \+ member(Opp, [V1,V2,V3,V4]),
+    \+ member([V1,V2,V3,V4], Opp),
     include(=(M), [V1,V2,V3,V4], Ms),
     include(=(E), [V1,V2,V3,V4], Es),
     length(Ms, CountM),
@@ -621,40 +504,19 @@ count_threats(B, M, Count) :-
     length(L, Count).
 
 
-center_score(B, M, Score) :-
-    % indices de la colonne centrale (col = 4) : (Row-1)*7 + 4
+
+center_score_abs(B, Score) :-
     findall(V,
         ( between(1,6,Row),
           idx(Row, 4, I),
           nth1(I,B,V)
         ),
         Values),
-    blank_mark(E),
-    inverse_mark(M, Opp),
-    include(=(M), Values, Ms),
-    include(=(Opp), Values, Os),
-    length(Ms, MyCount),
-    length(Os, OppCount),
-    Score is MyCount - OppCount.
-
-
-
-
-
-% Compte les alignements de 3 pions (menaces)
-count_threats2(B, M, Count) :-
-    findall(1, threat_pattern(B, M), L),
-    length(L, Count).
-
-threat_pattern2(B, M) :-
-    % Cherche 3 pions alignes avec 1 case vide
-    case(B, M, S1),
-    case(B, M, S2),
-    case(B, M, S3),
-    case(B, E, S4),
-    blank_mark(E),
-    aligned(S1, S2, S3, S4).  % Verifier l'alignement
-
+    include(=('x'), Values, Xs),
+    include(=('o'), Values, Os),
+    length(Xs, Xc),
+    length(Os, Oc),
+    Score is Xc - Oc.
 
 
 minimax(D,[E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E],M,S,U) :-
@@ -679,9 +541,9 @@ minimax(D,B,M,S,U) :-
 
 
 minimax(D,B,M,S,U) :-
-    evaluate(B, M, U)
+    evaluate(B, M, U, D)
     .
-    .
+
 
 %.......................................
 % alphabeta
@@ -689,133 +551,66 @@ minimax(D,B,M,S,U) :-
 
 % Version alpha-beta de minimax
 alphabeta(D, B, M, S, U, Alpha, Beta) :-
-    D2 is D + 1,
-    moves(B, L),
-    best_alphabeta(D2, B, M, L, S, U, Alpha, Beta).
-
-best_alphabeta(D, B, M, [S1|T], S, U, Alpha, Beta) :-
-    move(B, S1, M, B2),
-    inverse_mark(M, M2),
-    alphabeta(D, B2, M2, _S, U1, Alpha, Beta),
-    
-    % Mise à jour de Alpha/Beta
-    update_bounds(M, U1, Alpha, Beta, Alpha2, Beta2),
-    
-    % Coupe si Alpha >= Beta
-    (Alpha2 >= Beta2 ->
-        S = S1, U = U1  % Coupe !
-    ;
-        best_alphabeta(D, B, M, T, S2, U2, Alpha2, Beta2),
-        better(D, M, S1, U1, S2, U2, S, U)
+   max_depth_AlphaBeta(MaxD),
+    (   D >= MaxD
+    ->  evaluate(B, M, U, D), S = 0
+    ;   \+ moves(B, _)
+    ->  evaluate(B, M, U, D), S = 0
+    ;   moves(B, Moves),
+        D1 is D + 1,
+        ab_best(Moves, D1, B, M, S, U, Alpha, Beta)
     ).
 
 
-%.......................................
-% evaluate
-%.......................................
-% Évalue un plateau sans aller jusqu'à la fin
-
-% Compte les alignements de 3 pions (menaces)
-count_threats(B, M, Count) :-
-    findall(1, threat_pattern(B, M), L),
-    length(L, Count).
-
-threat_pattern(B, M) :-
-    % Cherche 3 pions alignés avec 1 case vide
-    square(B, _, M, S1),
-    square(B, _, M, S2),
-    square(B, _, M, S3),
-    square(B, _, E, S4),
-    blank_mark(E),
-    aligned(S1, S2, S3, S4).  % Vérifier l'alignement
 
 
-%.......................................
-% aligned
-%.......................................
-% Vérifie l'alignement de plusieurs cases
+ab_best([S1], D, B, M, S1, U1, Alpha, Beta) :-
+    move(B, S1, M, B2),
+    inverse_mark(M, M2),
+    alphabeta(D, B2, M2, _Sx, U1, Alpha, Beta),
+    !.
 
-% Alignement horizontal
-aligned(S1, S2, S3, S4) :-
-    same_row(S1, S2, S3, S4),
-    consecutive_columns(S1, S2, S3, S4).
 
-% Alignement vertical
-aligned(S1, S2, S3, S4) :-
-    same_column(S1, S2, S3, S4),
-    consecutive_rows(S1, S2, S3, S4).
+% Explore la liste des coups et garde le meilleur en coupant si possible
+ab_best([S1|Rest], D, B, M, BestS, BestU, Alpha, Beta) :-
+    move(B, S1, M, B2),
+    inverse_mark(M, M2),
+    alphabeta(D, B2, M2, _Sx, U1, Alpha, Beta),
+    ab_update(M, U1, S1, Rest, D, B, M, BestS, BestU, Alpha, Beta),
+    output_value(D,BestS, BestU),
+    !.
 
-% Alignement diagonal (↘)
-aligned(S1, S2, S3, S4) :-
-    diagonal_down(S1, S2, S3, S4).
 
-% Alignement diagonal (↗)
-aligned(S1, S2, S3, S4) :-
-    diagonal_up(S1, S2, S3, S4).
 
-% Vérifier si 4 cases sont sur la même ligne
-same_row(S1, S2, S3, S4) :-
-    row(S1, R),
-    row(S2, R),
-    row(S3, R),
-    row(S4, R).
+% Mise à jour / coupure / continuer
+ab_update(M, U1, S1, Rest, D, B, M0, BestS, BestU, Alpha, Beta) :-
+    (   maximizing(M)
+    ->  Alpha1 is max(Alpha, U1),
+        ( Alpha1 >= Beta
+        -> BestS = S1, BestU = U1               % CUT
+        ;  ab_best(Rest, D, B, M0, S2, U2, Alpha1, Beta),
+           better(D, M0, S1, U1, S2, U2, BestS, BestU)
+        )
+    ;   minimizing(M)
+    ->  Beta1 is min(Beta, U1),
+        ( Alpha >= Beta1
+        -> BestS = S1, BestU = U1               % CUT
+        ;  ab_best(Rest, D, B, M0, S2, U2, Alpha, Beta1),
+           better(D, M0, S1, U1, S2, U2, BestS, BestU)
+        )
+    ).
 
-% Calculer la ligne d'une case (plateau 7×6)
-row(Square, Row) :-
-    Row is Square // 7.  % Division entière
 
-% Vérifier si les colonnes sont consécutives
-consecutive_columns(S1, S2, S3, S4) :-
-    col(S1, C1),
-    col(S2, C2),
-    col(S3, C3),
-    col(S4, C4),
-    sort([C1,C2,C3,C4], [CC1, CC2, CC3, CC4]),  % Trier
-    CC2 is CC1 + 1,
-    CC3 is CC2 + 1,
-    CC4 is CC3 + 1.
 
-% Calculer la colonne d'une case
-col(Square, Col) :-
-    Col is Square mod 7.
+OutputValue(D,S,U) :-
+    D == 1,
+    nl,
+    write('Square '),
+    write(S),
+    write(', utility: '),
+    write(U), !
+    .
 
-% Vérifier si 4 cases sont sur la même colonne
-same_column(S1, S2, S3, S4) :-
-	col(S1, C),
-	col(S2, C),
-	col(S3, C),
-	col(S4, C).
-
-% Vérifier si les colonnes sont consécutives
-consecutive_rows(S1, S2, S3, S4) :-
-	row(S1, R1),
-	row(S2, R2),
-	row(S3, R3),
-	row(S4, R4),
-	sort([R1, R2, R3, R4], [RR1, RR2, RR3, RR4]),
-	RR2 is RR1 + 1,
-	RR3 is RR2 + 1,
-	RR4 is RR3 + 1.
-
-diagonal_down(S1, S2, S3, S4):-
-	D1 is S1 mod 8,
-	D2 is S2 mod 8,
-	D3 is S3 mod 8,
-	D4 is S4 mod 8,
-    D1 = D2,
-    D2 = D3,
-    D3 = D4,
-	consecutive_columns(S1, S2, S3, S4).
-
-diagonal_up(S1, S2, S3, S4):-
-	D1 is S1 mod 6,
-    D2 is S2 mod 6,
-    D3 is S3 mod 6,
-    D4 is S4 mod 6,
-    D1 = D2,
-    D2 = D3,
-    D3 = D4,
-    consecutive_columns(S1, S2, S3, S4).
 
 %.......................................
 % best
@@ -914,10 +709,10 @@ better2(D,R,M,S1,U1,S2,U2,  S,U) :-
 :- use_module(library(ansi_term)).
 
 color_val(x) :-
-    Circle = '@�',
+    Circle = '@',
     ansi_format([fg(red)], Circle, []).
 color_val(o) :-
-    Circle = '@�',
+    Circle = '@',
     ansi_format([fg(blue)], Circle, []).
 color_val(V) :-
     write(V).
@@ -1213,13 +1008,13 @@ test :-
 
 test1 :-
     blank_mark(E),
-    game_over(2,
+   \+ game_over(2,
               [E,E,E,E,E,E,E,
                E,E,E,E,E,E,E,
                E,E,E,E,E,E,E,
-               E,E,E,E,E,E,E,
-               E,E,E,E,E,E,E,
-               E,E,x,x,x,x,E]).
+               E,E,x,E,E,E,E,
+               E,x,E,E,E,E,E,
+               x,E,E,x,x,E,E]).
 
 test2 :-
     blank_mark(E),
