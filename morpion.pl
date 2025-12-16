@@ -402,19 +402,6 @@ moves(B,L) :-
 
 
 
-%.......................................
-% minimax
-%.......................................
-% The minimax algorithm always assumes an optimal opponent.
-% For tic-tac-toe, optimal play will always result in a tie, so the algorithm is effectively playing not-to-lose.
-% For the opening move against an optimal player, the best minimax can ever hope for is a tie.
-% So, technically speaking, any opening move is acceptable.
-% Save the user the trouble of waiting  for the computer to search the entire minimax tree
-% by simply selecting a random square.
-
-max_depth(5).
-max_depth_AlphaBeta(7).
-Case(B, M, S):-nth0(S, B, M).
 
 %..........................
 %EVALUATE
@@ -475,7 +462,7 @@ line_threat_for(B, M, [I1,I2,I3,I4]) :-
     nth1(I4, B, V4),
     blank_mark(E),
     inverse_mark(M, Opp),
-    \+ member([V1,V2,V3,V4], Opp),
+    \+ member(Opp, [V1,V2,V3,V4]),
     include(=(M), [V1,V2,V3,V4], Ms),
     include(=(E), [V1,V2,V3,V4], Es),
     length(Ms, CountM),
@@ -508,7 +495,8 @@ count_threats(B, M, Count) :-
 center_score_abs(B, Score) :-
     findall(V,
         ( between(1,6,Row),
-          idx(Row, 4, I),
+          between(3,5, C),
+          idx(Row, C, I),
           nth1(I,B,V)
         ),
         Values),
@@ -517,6 +505,22 @@ center_score_abs(B, Score) :-
     length(Xs, Xc),
     length(Os, Oc),
     Score is Xc - Oc.
+
+
+
+%.......................................
+% minimax
+%.......................................
+% The minimax algorithm always assumes an optimal opponent.
+% For tic-tac-toe, optimal play will always result in a tie, so the algorithm is effectively playing not-to-lose.
+% For the opening move against an optimal player, the best minimax can ever hope for is a tie.
+% So, technically speaking, any opening move is acceptable.
+% Save the user the trouble of waiting  for the computer to search the entire minimax tree
+% by simply selecting a random square.
+
+max_depth(5).
+Case(B, M, S):-nth0(S, B, M).
+
 
 
 minimax(D,[E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E, E,E,E,E,E,E,E],M,S,U) :-
@@ -544,72 +548,6 @@ minimax(D,B,M,S,U) :-
     evaluate(B, M, U, D)
     .
 
-
-%.......................................
-% alphabeta
-%.......................................
-
-% Version alpha-beta de minimax
-alphabeta(D, B, M, S, U, Alpha, Beta) :-
-   max_depth_AlphaBeta(MaxD),
-    (   D >= MaxD
-    ->  evaluate(B, M, U, D), S = 0
-    ;   \+ moves(B, _)
-    ->  evaluate(B, M, U, D), S = 0
-    ;   moves(B, Moves),
-        D1 is D + 1,
-        ab_best(Moves, D1, B, M, S, U, Alpha, Beta)
-    ).
-
-
-
-
-ab_best([S1], D, B, M, S1, U1, Alpha, Beta) :-
-    move(B, S1, M, B2),
-    inverse_mark(M, M2),
-    alphabeta(D, B2, M2, _Sx, U1, Alpha, Beta),
-    !.
-
-
-% Explore la liste des coups et garde le meilleur en coupant si possible
-ab_best([S1|Rest], D, B, M, BestS, BestU, Alpha, Beta) :-
-    move(B, S1, M, B2),
-    inverse_mark(M, M2),
-    alphabeta(D, B2, M2, _Sx, U1, Alpha, Beta),
-    ab_update(M, U1, S1, Rest, D, B, M, BestS, BestU, Alpha, Beta),
-    output_value(D,BestS, BestU),
-    !.
-
-
-
-% Mise à jour / coupure / continuer
-ab_update(M, U1, S1, Rest, D, B, M0, BestS, BestU, Alpha, Beta) :-
-    (   maximizing(M)
-    ->  Alpha1 is max(Alpha, U1),
-        ( Alpha1 >= Beta
-        -> BestS = S1, BestU = U1               % CUT
-        ;  ab_best(Rest, D, B, M0, S2, U2, Alpha1, Beta),
-           better(D, M0, S1, U1, S2, U2, BestS, BestU)
-        )
-    ;   minimizing(M)
-    ->  Beta1 is min(Beta, U1),
-        ( Alpha >= Beta1
-        -> BestS = S1, BestU = U1               % CUT
-        ;  ab_best(Rest, D, B, M0, S2, U2, Alpha, Beta1),
-           better(D, M0, S1, U1, S2, U2, BestS, BestU)
-        )
-    ).
-
-
-
-OutputValue(D,S,U) :-
-    D == 1,
-    nl,
-    write('Square '),
-    write(S),
-    write(', utility: '),
-    write(U), !
-    .
 
 
 %.......................................
@@ -641,6 +579,88 @@ best(D,B,M,[S1|T],S,U) :-
     output_value(D,S1,U1),
     better(D,M,S1,U1,S2,U2,S,U)  %%% and choose the better of the two moves (based on their respective utility values)
     .
+
+
+
+%.......................................
+% alphabeta
+%.......................................
+
+% valeur initiale "pire possible" selon max/min
+%
+%
+
+max_depth_AlphaBeta(8).
+
+
+alphabeta(D, B, M, BestS, BestU, Alpha, Beta) :-
+    max_depth_AlphaBeta(MaxD),
+    (   D >= MaxD
+    ->  evaluate(B, M, BestU, D), BestS = 0
+    ;   \+ moves(B, _)
+    ->  evaluate(B, M, BestU, D), BestS = 0
+    ;   moves(B, Moves),
+        init_best(M, Alpha, Beta, InitU),
+        ab_loop(Moves, D, B, M, 0, InitU, Alpha, Beta, BestS, BestU)
+    ).
+
+% valeur initiale du "meilleur" selon le joueur courant
+init_best(M, _A, _B, -1000000000) :- maximizing(M), !.
+init_best(_M, _A, _B,  1000000000).
+
+% boucle principale sur la liste des coups
+ab_loop([], _D, _B, _M, BestS, BestU, _Alpha, _Beta, BestS, BestU) :- !.
+
+ab_loop([S|Rest], D, B, M, CurBestS, CurBestU, Alpha, Beta, BestS, BestU) :-
+    % jouer le coup S
+    move(B, S, M, B2),
+    inverse_mark(M, M2),
+    D1 is D + 1,
+
+    % évaluer le fils
+    alphabeta(D1, B2, M2, _ChildS, U, Alpha, Beta),
+
+    % mise à jour du meilleur + bornes
+    update_best_and_bounds(M, S, U,
+                           CurBestS, CurBestU,
+                           Alpha, Beta,
+                           NewBestS, NewBestU,
+                           NewAlpha, NewBeta),
+
+    %
+    (   NewAlpha >= NewBeta
+    ->  BestS = NewBestS, BestU = NewBestU
+    ;   ab_loop(Rest, D, B, M, NewBestS, NewBestU, NewAlpha, NewBeta, BestS, BestU)
+    ).
+
+% update pour MAX
+update_best_and_bounds(M, S, U,
+                       CurBestS, CurBestU,
+                       Alpha, Beta,
+                       NewBestS, NewBestU,
+                       NewAlpha, Beta) :-
+    maximizing(M), !,
+    (   U > CurBestU
+    ->  NewBestS = S, NewBestU = U
+    ;   NewBestS = CurBestS, NewBestU = CurBestU
+    ),
+    NewAlpha is max(Alpha, NewBestU).
+
+% update pour MIN
+update_best_and_bounds(_M, S, U,
+                       CurBestS, CurBestU,
+                       Alpha, Beta,
+                       NewBestS, NewBestU,
+                       Alpha, NewBeta) :-
+    (   U < CurBestU
+    ->  NewBestS = S, NewBestU = U
+    ;   NewBestS = CurBestS, NewBestU = CurBestU
+    ),
+    NewBeta is min(Beta, NewBestU).
+
+
+
+
 
 
 %.......................................
@@ -910,12 +930,11 @@ arity_prolog___random_int_1n(N, V) :-
 %%% LIST PROCESSING
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-member([V|T], V).
-member([_|T], V) :- member(T,V).
+member(X, [X|_]).
+member(X, [_|T]) :- member(X, T).
 
 append([], L, L).
-append([H|T1], L2, [H|T3]) :- append(T1, L2, T3).
-
+append([H|T], L2, [H|R]) :- append(T, L2, R).
 
 %.......................................
 % set_item
